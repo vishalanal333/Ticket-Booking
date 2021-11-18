@@ -1,0 +1,69 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model BookingModel
+<div class="container">
+    <h3 class="display-4">Booking History</h3>
+    <hr />
+
+    <form id="searchHistory">
+        <div class="row mb-3">
+            <div class="col-md-3 form-group mr-3">
+                <label asp-for="TrainId"></label>
+                <input asp-for="TrainId" class="form-control" required/>
+                <span asp-validation-for="TrainId" class="text-danger"></span>
+            </div>
+            <div class="col-md-3 form-group mr-3">
+                <label asp-for="BookingDate"></label>
+                <input asp-for="BookingDate" class="form-control" required/>
+                <span asp-validation-for="BookingDate" class="text-danger"></span>
+            </div>
+            <div class="col-auto mr-4">
+                <button onclick="showBookings(this)" type="button" value="Add Route" class="btn btn-primary mt-4 p-3">Search</button>
+            </div>
+        </div>
+    </form>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ticket No.</th>
+                <th>Train No.</th>
+                <th>Date</th>
+                <th>Traveler Name</th>
+                <th>Age</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="history"></tbody>
+    </table>
+</div>
+@section scripts{
+    <script>
+        $('.table').hide();
+        function showBookings(e) {
+            if ($('form').valid()) {
+                $.ajax({
+                    url: "/TrainBooking/GetAllTrainBookings",
+                    method: "POST",
+                    data: $('form').serialize(),
+                    success: function (data) {
+                        console.log(data);
+                        html = ''
+                        data.forEach((ca) => {
+                            {
+                                html += `<tr> <td>${ca.ticketId}</td> <td>${ca.trainId}</td> <td>${ca.bookingDate}</td> <td>${ca.travellerName}</td> <td>${ca.travellerAge}</td> <td>${ca.sourceStation}</td> <td>${ca.destinationStation}</td> <td>${ca.price}</td></tr>`;
+                            }
+                        });
+                        $('#searchHistory')[0].reset();
+                        $('#history').html(html);
+                        if (data != '') {
+                            $('.table').show();
+                        }
+                    }
+                })
+            }
+        }
+    </script>
+}

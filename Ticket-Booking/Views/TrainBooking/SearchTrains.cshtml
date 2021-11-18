@@ -1,0 +1,84 @@
+﻿
+@{
+    ViewData["Title"] = "Home Page";
+}
+@model TrainModel
+<secton>
+    <div class="container">
+        <h1 class="text-center">Train</h1>
+        <hr />
+        <form method="post" asp-action="AddNewTrain" asp-controller="TrainBooking">
+            <div class="row mb-3">
+                <div class="col-md-3 form-group mr-3">
+                    <label asp-for="TrainName"></label>
+                    <input asp-for="TrainName" class="form-control" required />
+                    <span asp-validation-for="TrainName" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 form-group mr-3">
+                    <label asp-for="Seats"></label>
+                    <input asp-for="Seats" class="form-control" required />
+                    <span asp-validation-for="Seats" class="text-danger"></span>
+                </div>
+                <div class="col-auto mr-3">
+                    <input type="submit" value="Add Train" class="btn btn-primary mt-4 p-3" />
+                </div>
+            </div>
+        </form>
+
+        <form id="SearchForm">
+            <div class="form-group">
+                <input asp-for="TrainName" class="form-control" onkeyup="searchTrain(this)" placeholder="Search" />
+            </div>
+        </form>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Train No.</th>
+                    <th>Tain Name</th>
+                    <th>Seats</th>
+                </tr>
+            </thead>
+            <tbody id="searchedBody"></tbody>
+        </table>
+    </div>
+</secton>
+@section scripts{
+    <script>
+        function getAllTrains(e) {
+            $.ajax({
+                url: "/TrainBooking/GetAllTrains",
+                method: "GET",
+                success: function (data) {
+                    bindTable(data);
+                }
+            })
+        }
+
+        getAllTrains();
+        function searchTrain(e) {
+            $.ajax({
+                url: "/TrainBooking/SearchTrains",
+                method: "POST",
+                data: $('form#SearchForm').serialize(),
+                success: function (data) {
+                    bindTable(data);
+                }
+            })
+        }
+
+        function bindTable(data) {
+
+            cartHtml = ''
+            data.forEach((ca) => {
+                {
+                    cartHtml += `<tr> <td>${ca.trainId}</td> <td>${ca.trainName}</td> <td>${ca.seats}</td> <td><a class="AddRoute" type="button" href="/TrainBooking/AddRoute/${ca.trainId}">Add Route</a></td></tr>`;
+                }
+            });
+            $('#searchedBody').html(cartHtml);
+            $('.table').show();
+        }
+
+
+
+    </script>
+}

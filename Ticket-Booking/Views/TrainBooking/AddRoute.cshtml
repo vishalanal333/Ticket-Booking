@@ -1,0 +1,165 @@
+﻿@model TrainRouteModel
+@{
+    ViewData["Title"] = "Add Route";
+}
+
+<div class="container">
+    <h3 class="display-4">Add New Route</h3>
+    <hr />
+
+    <form id="addRoute">
+        <div class="row mb-3">
+            <input type="hidden" asp-for="Id" class="form-inline" id="inpId"/>
+            <input type="hidden" asp-for="TrainId" class="form-inline" />
+            <div class="col-md-3 form-group mr-3">
+                <label asp-for="StationName"></label>
+                <input list="stationsDataList" name="StationName" class="form-control" id="inpStationName" required>
+                <datalist id="stationsDataList"></datalist>
+            </div>
+            <div class="col-md-3 form-group mr-3">
+                <label asp-for="Distance"></label>
+                <input asp-for="Distance" class="form-control" id="inpDistance" />
+                <span asp-validation-for="Distance" class="text-danger"></span>
+            </div>
+            <div class="col-md-3 form-group mr-3">
+                <label asp-for="Price"></label>
+                <input asp-for="Price" class="form-control" id="inpPrice" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="col-auto mr-4">
+                <button id="Routeadded" onclick="addRoute(this)" type="button" value="Add Route" class="btn btn-primary mt-4 p-3">Add Route</button>
+                <button id="Routeupdate" onclick="updateRoute(this)" type="button" value="Update Route" class="btn btn-primary mt-4 p-3">Update Route</button>
+            </div>
+           
+        </div>
+    </form>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Station No.</th>
+                <th>Station</th>
+                <th>Distance</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="routes"></tbody>
+    </table>
+</div>
+@section scripts{ 
+<script>
+    $('.table').hide();
+    $('#Routeupdate').hide();
+   
+    function getStations() {       
+        $.ajax({
+            url: "/TrainBooking/GetAllStations",
+            method: "GET",
+            success: function (data) {
+                html = ''
+                data.forEach((ca) => {
+                    {
+                        html += `<option value="${ca.stationCode}"> ${ca.stationName} </option >`;
+                    }
+                });
+                $('#stationsDataList').html(html);
+            }
+        })
+    }
+    getStations();
+
+    function addRoute(e) {
+        if($('form').valid()) {
+            $.ajax({
+                url: "/TrainBooking/AddRoute",
+                method: "POST",
+                data: $('form').serialize(),
+                success: function (data) {
+                    $('#addRoute')[0].reset();
+                    getRoutes();
+                }
+            })
+        }
+    }
+    
+    function getRoutes(e) {
+        $('.table').hide();
+        $.ajax({
+            url: "/TrainBooking/GetAllRoutes",
+            method: "POST",
+            data: $('form').serialize(),
+            success: function (data) {
+                console.log(data)
+                html = ''
+                data.forEach((ca) => {
+                    {
+                        html += `<tr> <td>${ca.id}</td> <td>${ca.stationName}</td> <td>${ca.distance}</td> <td>${ca.price}</td> <td><button class="routeEdit" type="button" onclick=editRoute(${ca.id},${ca.trainId})>Edit</button>    <button class="routeDelete" type="button" onclick=removeRoute(${ca.id},${ca.trainId})>Delete</button></td></tr>`;
+                    }
+                });
+                $('#routes').html(html);
+                if (data != '') {
+                    $('.table').show();
+                }
+            }
+        })
+    }
+    getRoutes();
+    function removeRoute(id, trainId) {
+        $('.table').hide();
+        var routeid = id;
+        var trainid = trainId;
+        $.ajax({
+            url: `/TrainBooking/DeleteRoute/${id}`,
+            method: "DELETE",
+            data: {
+                trainId: trainid,
+                id: routeid
+            },
+            success: function (data) {
+                html = ''
+                data.forEach((ca) => {
+                    {
+                        html += `<tr> <td>${ca.id}</td> <td>${ca.stationName}</td> <td>${ca.distance}</td> <td>${ca.price}</td> <td><button class="routeEdit" type="button" onclick=editRoute(${ca.id})>Edit</button>    <button class="routeDelete" type="button" onclick=removeRoute(${ca.id},${ca.trainId})>Delete</button></td></tr>`;
+                    }
+                });
+                $('#routes').html(html);
+                if (data != '') {
+                    $('.table').show();
+                }
+            }
+        })
+    }
+    function editRoute(id) {
+        $('#Routeupdate').show();
+        $('#Routeadded').hide();
+        $.ajax({
+            url: `/TrainBooking/GetRouteById/${id}`,
+            method: "POST",
+            success: function (data) {
+                console.log(data);
+                $('#inpId').val(data.id);
+                $('#inpStationName').val(data.stationName);
+                $('#inpDistance').val(data.distance);
+                $('#inpPrice').val(data.price);
+            }
+        })
+    }
+    function updateRoute(e) {
+        $('#Routeupdate').show();
+        $('#Routeadded').hide();
+        if ($('form').valid()) {
+            $.ajax({
+                url: "/TrainBooking/UpdateRoute",
+                method: "POST",
+                data: $('form').serialize(),
+                success: function (data) {
+                    $('#addRoute')[0].reset();
+                    getRoutes();
+                    $('#Routeupdate').hide();
+                    $('#Routeadded').show();
+                }
+            })
+        }
+    }
+    
+</script>
+}
